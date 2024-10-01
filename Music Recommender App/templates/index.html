@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Song Recommender with Auto-Complete</title>
+    <style>
+        /* Basic styling for the search suggestions */
+        #suggestions {
+            border: 1px solid #ccc;
+            max-height: 150px;
+            overflow-y: auto;
+            display: none; /* Hidden initially */
+            position: absolute;
+            background: white;
+        }
+        .suggestion-item {
+            padding: 5px;
+            cursor: pointer;
+        }
+        .suggestion-item:hover {
+            background-color: #e0e0e0;
+        }
+
+        form {
+            margin-top: 20px;
+        }
+
+        label {
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Search for a Song</h1>
+    
+    <!-- Song search input with autocomplete -->
+    <input type="text" id="search-input" placeholder="Enter song or track ID" autocomplete="off">
+    <div id="suggestions"></div>
+
+    <!-- Form to select recommender and submit -->
+    <form action="/recommend" method="POST">
+        <!-- Hidden input to store selected track_id -->
+        <input type="hidden" id="track_id_input" name="user_input">
+        
+        <!-- Recommender dropdown -->
+        <label for="recommender">Choose a recommendation system:</label>
+        <select name="recommender" id="recommender" required>
+            <option value="Tabular Data">Tabular Data</option>
+            <option value="Image Data">Image Data</option>
+            <option value="Audio Data">Audio Data</option>
+        </select>
+        
+        <!-- Submit button -->
+        <button type="submit">Get Recommendations</button>
+    </form>
+
+    <script>
+        const searchInput = document.getElementById('search-input');
+        const suggestionsBox = document.getElementById('suggestions');
+        const trackIdInput = document.getElementById('track_id_input');
+
+        searchInput.addEventListener('input', function() {
+            const query = searchInput.value;
+            if (query.length > 1) {
+                fetch(`/search?query=${query}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        // Display the suggestions
+                        suggestionsBox.innerHTML = '';
+                        if (data.length > 0) {
+                            suggestionsBox.style.display = 'block';
+                            data.forEach(item => {
+                                const div = document.createElement('div');
+                                div.classList.add('suggestion-item');
+                                div.textContent = `${item.track_id}: ${item.song}`;
+                                div.addEventListener('click', function() {
+                                    searchInput.value = `${item.track_id}: ${item.song}`;
+                                    trackIdInput.value = item.track_id;  // Store the selected track_id
+                                    suggestionsBox.style.display = 'none';  // Hide suggestions after selection
+                                });
+                                suggestionsBox.appendChild(div);
+                            });
+                        } else {
+                            suggestionsBox.style.display = 'none';
+                        }
+                    });
+            } else {
+                suggestionsBox.style.display = 'none';
+            }
+        });
+
+        document.addEventListener('click', function(event) {
+            if (!searchInput.contains(event.target)) {
+                suggestionsBox.style.display = 'none';  // Hide suggestions when clicking outside
+            }
+        });
+    </script>
+</body>
+</html>

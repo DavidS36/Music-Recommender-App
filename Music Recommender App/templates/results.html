@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Recommendations</title>
+    <style>
+        /* Styles as per your previous request */
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            min-height: 100vh;
+        }
+
+        table {
+            margin: 20px auto;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 10px;
+            border: 1px solid #ccc;
+        }
+
+        audio {
+            margin-top: 10px;
+        }
+
+        a {
+            margin-top: 20px;
+        }
+
+        /* Voting buttons styling */
+        .voting {
+            margin-top: 20px;
+        }
+
+        .voting button {
+            font-size: 24px;
+            background-color: transparent;
+            border: none;
+            cursor: pointer;
+        }
+
+        .voting button:hover {
+            color: green;
+        }
+
+        .voting button.thumbs-down:hover {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <h1>Recommendations</h1>
+    
+    <!-- Display the input song and play the audio -->
+    <h2>Input Song: {{ input_song }}</h2>
+    <audio controls>
+        <source src="{{ input_audio }}" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
+
+    <!-- Display the recommended songs and their audio -->
+    <h3>Recommended Songs:</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Track ID</th>
+                <th>Song</th>
+                <th>Audio</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in recommendations %}
+            <tr>
+                <td>{{ row.track_id }}</td>
+                <td>{{ row.song }}</td>
+                <td>
+                    <audio controls>
+                        <source src="{{ row.audio_path }}" type="audio/mpeg">
+                        Your browser does not support the audio element.
+                    </audio>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Voting system -->
+    <div class="voting">
+        <h3>Did you like the recommendations?</h3>
+        <button id="thumbs-up" onclick="sendVote('up')">👍</button>
+        <button id="thumbs-down" class="thumbs-down" onclick="sendVote('down')">👎</button>
+    </div>
+
+    <a href="/">Try another</a>
+
+    <script>
+        function sendVote(voteType) {
+            fetch('/vote', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ vote: voteType }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);  // Alert the user with the voting result
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+        }
+    </script>
+</body>
+</html>
