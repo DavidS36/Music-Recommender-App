@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template
+from flask import Flask, request, render_template, jsonify
 import pandas as pd
 from scipy.spatial.distance import euclidean
 import numpy as np
@@ -69,6 +69,21 @@ def recommender_audio(input_track_id, features_scaled, track_id_list, bp_song, t
 def home():
     return render_template('index.html')
 
+@app.route('/search', methods=['GET'])
+def search():
+    query = request.args.get('query', '')  # Get the user's query from the request
+    if query:
+        # Filter songs that match the query (case insensitive)
+        matches = bp_song[bp_song['song'].str.contains(query, case=False, na=False) | 
+                          bp_song['track_id'].astype(str).str.contains(query)]
+        
+        # Return the top 5 matches (can be adjusted)
+        results = matches[['track_id', 'song']].head(5).to_dict(orient='records')
+    else:
+        results = []
+    
+    return jsonify(results)
+
 @app.route('/recommend', methods=['POST'])
 def recommend():
     user_input = int(request.form['user_input'])  # Ensure the form in your HTML matches this field
@@ -111,6 +126,24 @@ def recommend():
 
     # Pass both the input song info and the recommendations (with audio) to the template
     return render_template('results.html', input_song=input_song_info, input_audio=input_audio_path, recommendations=recommendations_list)
+
+votes = {'up': 0, 'down': 0}
+
+@app.route('/vote', methods=['POST'])
+def vote():
+    data = request.get_json()
+    vote_type = data.get('vote')
+
+    if vote_type == 'up':
+        votes['up'] += 1
+        message = "Glad to hear it! Thank you for the feedback!"
+    elif vote_type == 'down':
+        votes['down'] += 1
+        message = "Sorry to hear that! Thank you for the feedback!"
+    else:
+        message = "Invalid vote."
+
+    return jsonify({'message': message, 'votes': votes}) 
 
 if __name__ == '__main__':
     app.run(debug=True)
