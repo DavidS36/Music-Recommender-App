@@ -69,21 +69,6 @@ def recommender_audio(input_track_id, features_scaled, track_id_list, bp_song, t
 def home():
     return render_template('index.html')
 
-@app.route('/search', methods=['GET'])
-def search():
-    query = request.args.get('query', '')  # Get the user's query from the request
-    if query:
-        # Filter songs that match the query (case insensitive)
-        matches = bp_song[bp_song['song'].str.contains(query, case=False, na=False) | 
-                          bp_song['track_id'].astype(str).str.contains(query)]
-        
-        # Return the top 5 matches (can be adjusted)
-        results = matches[['track_id', 'song']].head(5).to_dict(orient='records')
-    else:
-        results = []
-    
-    return jsonify(results)
-
 @app.route('/recommend', methods=['POST'])
 def recommend():
     user_input = int(request.form['user_input'])  # Ensure the form in your HTML matches this field
@@ -97,35 +82,50 @@ def recommend():
     input_song_info = bp_song[bp_song['track_id'] == user_input]['song'].values[0]
     input_sample_uuid = sample_uuid[sample_uuid['track_id'] == user_input]['sample_uuid'].values[0]
     input_audio_path = f"static/audio_files/{input_sample_uuid}.mp3"    
-    
+
+    # Dictionary for color mapping based on recommender type
+    color_mapping = {
+        'Tabular Data': '#8AC926',
+        'Image Data': '#1982C4',
+        'Audio Data': '#FF595E'
+    }
+
     if recommender == 'Tabular Data':
         if user_input not in bp_tabular['track_id'].values:
             error_message = "This Track ID exists but is not included in this method, please try another recommender type"
             return render_template('error.html', error_message=error_message)
         else: 
             recommendations = recommend_songs(user_input, bp_tabular, 5)
+            recommendations['audio_path'] = recommendations['track_id'].apply(
+                lambda track_id: f"static/audio_files/{sample_uuid[sample_uuid['track_id'] == track_id]['sample_uuid'].values[0]}.mp3")
+            recommendations_list = recommendations[['track_id', 'song', 'audio_path']].to_dict(orient='records')
+            return render_template('results_tabular.html', input_song=input_song_info, recommendations=recommendations_list, color=color_mapping['Tabular Data'])
+
     elif recommender == 'Image Data':
         if user_input not in list(image_track_ids_list):
             error_message = "This Track ID exists but is not included in this method, please try another recommender type"
             return render_template('error.html', error_message=error_message)
         else:
             recommendations = recommender_image(user_input, image_features_list, image_track_ids_list, bp_song, top_n=5)
+            recommendations['audio_path'] = recommendations['track_id'].apply(
+                lambda track_id: f"static/audio_files/{sample_uuid[sample_uuid['track_id'] == track_id]['sample_uuid'].values[0]}.mp3")
+            recommendations_list = recommendations[['track_id', 'song', 'audio_path']].to_dict(orient='records')
+            return render_template('results_image.html', input_song=input_song_info, recommendations=recommendations_list, color=color_mapping['Image Data'])
+
     elif recommender == 'Audio Data':
         if user_input not in list(audio_track_ids_list):
             error_message = "This Track ID exists but is not included in this method, please try another recommender type"
             return render_template('error.html', error_message=error_message)
         else:
             recommendations = recommender_audio(user_input, audio_features_list, audio_track_ids_list, bp_song, top_n=5)
+            recommendations['audio_path'] = recommendations['track_id'].apply(
+                lambda track_id: f"static/audio_files/{sample_uuid[sample_uuid['track_id'] == track_id]['sample_uuid'].values[0]}.mp3")
+            recommendations_list = recommendations[['track_id', 'song', 'audio_path']].to_dict(orient='records')
+            return render_template('results_audio.html', input_song=input_song_info, input_audio=input_audio_path, recommendations=recommendations_list, color=color_mapping['Audio Data'])
+
     else:
         recommendations = "Invalid recommender selected."
-
-    recommendations['audio_path'] = recommendations['track_id'].apply(
-        lambda track_id: f"static/audio_files/{sample_uuid[sample_uuid['track_id'] == track_id]['sample_uuid'].values[0]}.mp3")
-    
-    recommendations_list = recommendations[['track_id', 'song', 'audio_path']].to_dict(orient='records')
-
-    # Pass both the input song info and the recommendations (with audio) to the template
-    return render_template('results.html', input_song=input_song_info, input_audio=input_audio_path, recommendations=recommendations_list)
+        return render_template('error.html', error_message=recommendations)
 
 votes = {'up': 0, 'down': 0}
 

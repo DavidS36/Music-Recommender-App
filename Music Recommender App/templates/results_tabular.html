@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Recommendations</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            min-height: 100vh;
+        }
+
+        table {
+            margin: 20px auto;
+            border-collapse: collapse;
+            border: 4px solid {{ color }}; /* Use the color based on recommender */
+        }
+
+        th, td {
+            padding: 10px;
+            border: 1px solid #ccc;
+        }
+
+        audio {
+            margin-top: 10px;
+        }
+
+        a {
+            margin-top: 20px;
+        }
+
+        .back-to-selection {
+            margin-top: 30px;
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: {{ color }}; /* Use the same color for the button */
+            color: white;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>{{ recommender }} Recommendations</h1>
+    <h2>Input Song: {{ input_song }}</h2>
+
+    <h3>Recommended Songs:</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Track ID</th>
+                <th>Song</th>
+                <th>Audio</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in recommendations %}
+            <tr>
+                <td>{{ row.track_id }}</td>
+                <td>{{ row.song }}</td>
+                <td>
+                    <audio controls>
+                        <source src="{{ row.audio_path }}" type="audio/mpeg">
+                        Your browser does not support the audio element.
+                    </audio>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <a class="back-to-selection" href="/">Back to Home</a>
+</body>
+</html>
+
