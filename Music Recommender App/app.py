@@ -10,15 +10,15 @@ def load_data(filepath):
     return pd.read_csv(filepath)
 
 # Load your data once when the app starts
-bp_tabular = load_data('bp_tabular.csv')
-bp_song = load_data('bp_song.csv')
-sample_uuid = load_data('sample_uuid.csv')
+bp_tabular = load_data('data/bp_tabular.csv')
+bp_song = load_data('data/bp_song.csv')
+sample_uuid = load_data('data/sample_uuid.csv')
 
-image_features_list = np.load('image_features_list.npy')
-image_track_ids_list = np.load('image_track_ids_list.npy')
+image_features_list = np.load('data/image_features_list.npy')
+image_track_ids_list = np.load('data/image_track_ids_list.npy')
 
-audio_features_list = np.load('audio_features_list.npy')
-audio_track_ids_list = np.load('audio_track_ids_list.npy')
+audio_features_list = np.load('data/audio_features_list.npy')
+audio_track_ids_list = np.load('data/audio_track_ids_list.npy')
 
 
 # Function for Tabular Data
