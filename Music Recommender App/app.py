@@ -96,21 +96,21 @@ def recommend():
         recommendations['audio_path'] = recommendations['track_id'].apply(
             lambda track_id: f"static/audio_files/{sample_uuid[sample_uuid['track_id'] == track_id]['sample_uuid'].values[0]}.mp3")
         recommendations_list = recommendations[['track_id', 'song', 'audio_path']].to_dict(orient='records')
-        return render_template('results_tabular.html', input_song=input_song_info, recommendations=recommendations_list, track_id=user_input, color=color_mapping['Tabular Data'])
+        return render_template('results_tabular.html', input_song=input_song_info, recommendations=recommendations_list, track_id=user_input, color=color_mapping['Tabular Data'], input_audio=input_audio_path)
 
     elif recommender == 'Image Data':
         recommendations = recommender_image(user_input, image_features_list, image_track_ids_list, bp_song, top_n=5)
         recommendations['audio_path'] = recommendations['track_id'].apply(
             lambda track_id: f"static/audio_files/{sample_uuid[sample_uuid['track_id'] == track_id]['sample_uuid'].values[0]}.mp3")
         recommendations_list = recommendations[['track_id', 'song', 'audio_path']].to_dict(orient='records')
-        return render_template('results_image.html', input_song=input_song_info, recommendations=recommendations_list, track_id=user_input, color=color_mapping['Image Data'])
+        return render_template('results_image.html', input_song=input_song_info, recommendations=recommendations_list, track_id=user_input, color=color_mapping['Image Data'], input_audio=input_audio_path)
 
     elif recommender == 'Audio Data':
         recommendations = recommender_audio(user_input, audio_features_list, audio_track_ids_list, bp_song, top_n=5)
         recommendations['audio_path'] = recommendations['track_id'].apply(
             lambda track_id: f"static/audio_files/{sample_uuid[sample_uuid['track_id'] == track_id]['sample_uuid'].values[0]}.mp3")
         recommendations_list = recommendations[['track_id', 'song', 'audio_path']].to_dict(orient='records')
-        return render_template('results_audio.html', input_song=input_song_info, recommendations=recommendations_list, track_id=user_input, color=color_mapping['Audio Data'])
+        return render_template('results_audio.html', input_song=input_song_info, recommendations=recommendations_list, track_id=user_input, color=color_mapping['Audio Data'], input_audio=input_audio_path)
 
     else:
         error_message = "Invalid recommender selected."
