@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Recommendations</title>
+    <title>Tabular Data Recommendations</title>
     <style>
         body {
             display: flex;
@@ -16,7 +16,7 @@
         table {
             margin: 20px auto;
             border-collapse: collapse;
-            border: 4px solid {{ color }}; /* Use the color based on recommender */
+            border: 4px solid {{ color }};
         }
 
         th, td {
@@ -36,15 +36,41 @@
             margin-top: 30px;
             display: inline-block;
             padding: 10px 20px;
-            background-color: {{ color }}; /* Use the same color for the button */
+            background-color: {{ color }};
             color: white;
             text-decoration: none;
+        }
+        
+        .vote-buttons {
+            margin-top: 20px;
+        }
+
+        button {
+            margin: 5px;
+            padding: 10px;
         }
     </style>
 </head>
 <body>
-    <h1>{{ recommender }} Recommendations</h1>
+    <h1>Tabular Data Recommendations</h1>
     <h2>Input Song: {{ input_song }}</h2>
+
+    <!-- Dropdown to switch recommendation systems -->
+    <form action="/recommend" method="POST">
+        <!-- Track ID input (hidden, to keep the track ID when switching models) -->
+        <input type="hidden" name="user_input" value="{{ track_id }}">
+
+        <!-- Recommender dropdown -->
+        <label for="recommender">Switch Recommender:</label>
+        <select name="recommender" id="recommender" required>
+            <option value="Tabular Data" data-color="#8AC926">Tabular Data</option>
+            <option value="Image Data" data-color="#1982C4" selected>Image Data</option>
+            <option value="Audio Data" data-color="#FF595E">Audio Data</option>
+        </select>
+
+        <!-- Submit button -->
+        <button type="submit">Switch</button>
+    </form>
 
     <h3>Recommended Songs:</h3>
     <table>
@@ -72,6 +98,39 @@
     </table>
 
     <a class="back-to-selection" href="/">Back to Home</a>
+    
+    <script>
+        const upvoteButton = document.getElementById('upvote');
+        const downvoteButton = document.getElementById('downvote');
+        const voteMessage = document.getElementById('vote-message');
+
+        // Function to send the vote
+        function sendVote(voteType) {
+            fetch('/vote', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ vote: voteType }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                voteMessage.textContent = data.message;  // Display feedback message
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+
+        // Event listeners for the voting buttons
+        upvoteButton.addEventListener('click', function() {
+            sendVote('up');
+        });
+
+        downvoteButton.addEventListener('click', function() {
+            sendVote('down');
+        });
+    </script>
 </body>
 </html>
 

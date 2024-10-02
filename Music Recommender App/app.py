@@ -71,61 +71,50 @@ def home():
 
 @app.route('/recommend', methods=['POST'])
 def recommend():
-    user_input = int(request.form['user_input'])  # Ensure the form in your HTML matches this field
-    recommender = request.form['recommender']
+    user_input = int(request.form['user_input'])  # Track ID is still passed
+    recommender = request.form['recommender']  # Selected recommender type
 
+    # Validate that the track ID exists in the dataset
     if user_input not in bp_song['track_id'].values:
         error_message = "This is not a valid entry. Please try again with a different track ID."
         return render_template('error.html', error_message=error_message)
-        
+
     # Fetch the input song information
     input_song_info = bp_song[bp_song['track_id'] == user_input]['song'].values[0]
     input_sample_uuid = sample_uuid[sample_uuid['track_id'] == user_input]['sample_uuid'].values[0]
-    input_audio_path = f"static/audio_files/{input_sample_uuid}.mp3"    
+    input_audio_path = f"static/audio_files/{input_sample_uuid}.mp3"
 
-    # Dictionary for color mapping based on recommender type
     color_mapping = {
         'Tabular Data': '#8AC926',
         'Image Data': '#1982C4',
         'Audio Data': '#FF595E'
     }
 
+    # Check which recommender was selected and provide the respective recommendations
     if recommender == 'Tabular Data':
-        if user_input not in bp_tabular['track_id'].values:
-            error_message = "This Track ID exists but is not included in this method, please try another recommender type"
-            return render_template('error.html', error_message=error_message)
-        else: 
-            recommendations = recommend_songs(user_input, bp_tabular, 5)
-            recommendations['audio_path'] = recommendations['track_id'].apply(
-                lambda track_id: f"static/audio_files/{sample_uuid[sample_uuid['track_id'] == track_id]['sample_uuid'].values[0]}.mp3")
-            recommendations_list = recommendations[['track_id', 'song', 'audio_path']].to_dict(orient='records')
-            return render_template('results_tabular.html', input_song=input_song_info, recommendations=recommendations_list, color=color_mapping['Tabular Data'])
+        recommendations = recommend_songs(user_input, bp_tabular, 5)
+        recommendations['audio_path'] = recommendations['track_id'].apply(
+            lambda track_id: f"static/audio_files/{sample_uuid[sample_uuid['track_id'] == track_id]['sample_uuid'].values[0]}.mp3")
+        recommendations_list = recommendations[['track_id', 'song', 'audio_path']].to_dict(orient='records')
+        return render_template('results_tabular.html', input_song=input_song_info, recommendations=recommendations_list, track_id=user_input, color=color_mapping['Tabular Data'])
 
     elif recommender == 'Image Data':
-        if user_input not in list(image_track_ids_list):
-            error_message = "This Track ID exists but is not included in this method, please try another recommender type"
-            return render_template('error.html', error_message=error_message)
-        else:
-            recommendations = recommender_image(user_input, image_features_list, image_track_ids_list, bp_song, top_n=5)
-            recommendations['audio_path'] = recommendations['track_id'].apply(
-                lambda track_id: f"static/audio_files/{sample_uuid[sample_uuid['track_id'] == track_id]['sample_uuid'].values[0]}.mp3")
-            recommendations_list = recommendations[['track_id', 'song', 'audio_path']].to_dict(orient='records')
-            return render_template('results_image.html', input_song=input_song_info, recommendations=recommendations_list, color=color_mapping['Image Data'])
+        recommendations = recommender_image(user_input, image_features_list, image_track_ids_list, bp_song, top_n=5)
+        recommendations['audio_path'] = recommendations['track_id'].apply(
+            lambda track_id: f"static/audio_files/{sample_uuid[sample_uuid['track_id'] == track_id]['sample_uuid'].values[0]}.mp3")
+        recommendations_list = recommendations[['track_id', 'song', 'audio_path']].to_dict(orient='records')
+        return render_template('results_image.html', input_song=input_song_info, recommendations=recommendations_list, track_id=user_input, color=color_mapping['Image Data'])
 
     elif recommender == 'Audio Data':
-        if user_input not in list(audio_track_ids_list):
-            error_message = "This Track ID exists but is not included in this method, please try another recommender type"
-            return render_template('error.html', error_message=error_message)
-        else:
-            recommendations = recommender_audio(user_input, audio_features_list, audio_track_ids_list, bp_song, top_n=5)
-            recommendations['audio_path'] = recommendations['track_id'].apply(
-                lambda track_id: f"static/audio_files/{sample_uuid[sample_uuid['track_id'] == track_id]['sample_uuid'].values[0]}.mp3")
-            recommendations_list = recommendations[['track_id', 'song', 'audio_path']].to_dict(orient='records')
-            return render_template('results_audio.html', input_song=input_song_info, input_audio=input_audio_path, recommendations=recommendations_list, color=color_mapping['Audio Data'])
+        recommendations = recommender_audio(user_input, audio_features_list, audio_track_ids_list, bp_song, top_n=5)
+        recommendations['audio_path'] = recommendations['track_id'].apply(
+            lambda track_id: f"static/audio_files/{sample_uuid[sample_uuid['track_id'] == track_id]['sample_uuid'].values[0]}.mp3")
+        recommendations_list = recommendations[['track_id', 'song', 'audio_path']].to_dict(orient='records')
+        return render_template('results_audio.html', input_song=input_song_info, recommendations=recommendations_list, track_id=user_input, color=color_mapping['Audio Data'])
 
     else:
-        recommendations = "Invalid recommender selected."
-        return render_template('error.html', error_message=recommendations)
+        error_message = "Invalid recommender selected."
+        return render_template('error.html', error_message=error_message)
 
 votes = {'up': 0, 'down': 0}
 
@@ -143,7 +132,7 @@ def vote():
     else:
         message = "Invalid vote."
 
-    return jsonify({'message': message, 'votes': votes}) 
+    return jsonify({'message': message, 'votes': votes})
 
 if __name__ == '__main__':
     app.run(debug=True)
