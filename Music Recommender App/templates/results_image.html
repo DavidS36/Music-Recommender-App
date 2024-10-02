@@ -55,6 +55,13 @@
     <h1>Image Data Recommendations</h1>
     <h2>Input Song: {{ input_song }}</h2>
 
+    <!-- Audio player for the inputted song -->
+    <h3>Listen to the Input Song:</h3>
+    <audio controls>
+        <source src="{{ input_audio }}" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
+
     <!-- Dropdown to switch recommendation systems -->
     <form action="/recommend" method="POST">
         <!-- Track ID input (hidden, to keep the track ID when switching models) -->
@@ -96,6 +103,13 @@
             {% endfor %}
         </tbody>
     </table>
+
+    <div class="vote-buttons">
+        <h3>Was this recommendation helpful?</h3>
+        <button id="upvote">👍 Yes</button>
+        <button id="downvote">👎 No</button>
+        <p id="vote-message"></p> <!-- To display the feedback message -->
+    </div>
 
     <a class="back-to-selection" href="/">Back to Home</a>
     
